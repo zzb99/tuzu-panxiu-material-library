@@ -1,0 +1,13 @@
+{
+  "name": "tuzu-panxiu-material-library",
+  "private": true,
+  "scripts": {
+    "install:all": "pnpm --dir backend install && pnpm --dir admin install && pnpm --dir frontend install",
+    "import:patterns": "node scripts/import-pattern-naming-library.js",
+    "dev:backend": "pnpm --dir backend start:dev",
+    "dev:admin": "pnpm --dir admin dev",
+    "dev:frontend": "pnpm --dir frontend dev",
+    "typecheck:all": "pnpm --dir backend typecheck && pnpm --dir admin typecheck && pnpm --dir frontend typecheck",
+    "build:all": "pnpm --dir backend build && pnpm --dir admin build && pnpm --dir frontend build"
+  }
+}

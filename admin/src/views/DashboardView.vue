@@ -1,0 +1,11 @@
+<script setup lang="ts">
+import {onMounted,ref} from 'vue'
+import {Collection,Folder,PriceTag,PictureFilled,Refresh} from '@element-plus/icons-vue'
+import {contentTypes,getContentTotal,getListTotal} from '@/api/dashboard'
+import LoadingState from '@/components/LoadingState.vue'
+const loading=ref(true),error=ref(''),stats=ref({contents:0,categories:0,tags:0,banners:0})
+async function load(){loading.value=true;error.value='';const tasks=[Promise.all(contentTypes.map(getContentTotal)).then(v=>v.reduce((a,b)=>a+b,0)),getListTotal('/admin/categories'),getListTotal('/admin/tags'),getListTotal('/admin/banners')];const results=await Promise.allSettled(tasks);const keys=(['contents','categories','tags','banners'] as const);results.forEach((result,i)=>{if(result.status==='fulfilled')stats.value[keys[i]]=result.value});const failed=results.filter(x=>x.status==='rejected').length;if(failed)error.value=`有 ${failed} 项统计暂时无法读取，请确认后端与数据库已启动。`;loading.value=false}
+onMounted(load)
+const cards=[{key:'contents' as const,label:'内容资源',note:'五类内容总量',icon:Collection},{key:'categories' as const,label:'分类',note:'平台分类总量',icon:Folder},{key:'tags' as const,label:'标签',note:'检索标签总量',icon:PriceTag},{key:'banners' as const,label:'Banner',note:'轮播内容总量',icon:PictureFilled}]
+</script>
+<template><div class="dashboard"><section class="welcome"><div><span class="eyebrow">CONTENT OVERVIEW</span><h1>欢迎回来</h1><p>这里展示来自后台真实接口的内容概况，方便快速掌握素材库维护状态。</p></div><el-button :icon="Refresh" :loading="loading" @click="load">刷新数据</el-button></section><el-alert v-if="error" :title="error" type="warning" show-icon :closable="false"/><LoadingState v-if="loading" :rows="6"/><template v-else><section class="stat-grid"><article v-for="card in cards" :key="card.key" class="stat-card"><div class="stat-icon"><el-icon><component :is="card.icon"/></el-icon></div><div><span>{{card.label}}</span><strong>{{stats[card.key]}}</strong><small>{{card.note}}</small></div></article></section><section class="work-card"><div><h2>内容维护工作台</h2><p>从左侧选择对应栏目，进入后续阶段的内容新增、编辑、上下架与附件维护。</p></div><div class="workflow"><span>创建内容</span><i></i><span>补充素材</span><i></i><span>检查信息</span><i></i><span>发布上线</span></div></section></template></div></template>
