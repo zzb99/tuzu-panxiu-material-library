@@ -1,4 +1,4 @@
-import sanitizeHtml from 'sanitize-html';
+import sanitizeHtml = require('sanitize-html');
 
 export function sanitizeRichText(value?: string | null): string | null | undefined {
   if (value === undefined || value === null) return value;

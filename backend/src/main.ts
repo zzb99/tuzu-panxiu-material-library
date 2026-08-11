@@ -18,7 +18,13 @@ async function bootstrap() {
   app.setGlobalPrefix('api');
   const allowedOrigins = (config.get<string>('CORS_ORIGINS') || 'http://localhost:5173,http://localhost:5174')
     .split(',').map((origin) => origin.trim()).filter(Boolean);
-  app.enableCors({ origin: allowedOrigins, credentials: true });
+  app.enableCors({
+    origin(origin, callback) {
+      if (!origin || allowedOrigins.some((allowed) => originMatches(origin, allowed))) return callback(null, true);
+      return callback(new Error('Origin is not allowed by CORS'));
+    },
+    credentials: true,
+  });
   app.useGlobalPipes(new ValidationPipe({ transform: true, whitelist: true, forbidNonWhitelisted: true }));
   const swaggerConfig = new DocumentBuilder().setTitle('土族盘绣纹样开放素材库 API').setVersion('1.0').addBearerAuth().build();
   SwaggerModule.setup('api/docs', app, SwaggerModule.createDocument(app, swaggerConfig));
@@ -27,3 +33,9 @@ async function bootstrap() {
 }
 
 void bootstrap();
+
+function originMatches(origin: string, allowed: string): boolean {
+  if (!allowed.includes('*')) return origin === allowed;
+  const escaped = allowed.replace(/[.+?^${}()|[\]\\]/g, '\\$&').replaceAll('*', '.*');
+  return new RegExp(`^${escaped}$`).test(origin);
+}
